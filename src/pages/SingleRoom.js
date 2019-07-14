@@ -1,9 +1,11 @@
 import React, {Component} from 'react';
 import defaultBackground from "../images/room-1.jpeg";
-import Hero from "../components/Hero";
 import Banner from "../components/Banner";
+import StyledHero from "../components/StyledHero";
 import {Link} from "react-router-dom";
 import {RoomContext} from "../context";
+
+const shortid = require("shortid");     //provides unique key values for html elements
 
 export default class SingleRoom extends Component {
     constructor(props) {
@@ -12,6 +14,10 @@ export default class SingleRoom extends Component {
             slug: this.props.match.params.slug,
             defaultBackground: defaultBackground
         }
+    }
+    // Fix issue with user being placed at bottom of the page
+    componentDidMount(){
+        window.scroll(0,0);
     }
     static contextType = RoomContext;
 
@@ -39,14 +45,47 @@ export default class SingleRoom extends Component {
             pets,
             images
         } = room;
+        const renderImages = images.map(image => {
+            return <img key={shortid.generate()} src={image} alt={name}/>
+        });
+        const renderExtras = extras.map(extra => {
+            return <li key={shortid.generate()}> {extra} </li>;
+        });
         return (
-            <Hero hero="roomsHero">
-                <Banner title={`${name} room`}>
-                    <Link to="/rooms" className="btn-primary">
-                        Back to Rooms
-                    </Link>
-                </Banner>
-            </Hero>
+            <>
+                <StyledHero image={images[0] || this.state.defaultBackground}>
+                    <Banner title={`${name} room`}>
+                        <Link to="/rooms" className="btn-primary">
+                            Back to Rooms
+                        </Link>
+                    </Banner>
+                </StyledHero>
+                <section className="single-room">
+                    <div className="single-room-images">
+                      {renderImages}  
+                    </div>
+                    <div className="single-room-info">
+                        <article className="desc">
+                            <h3> Details </h3>
+                            <p>{description}</p>
+                        </article>
+                        <article className="info">
+                            <h3> Info </h3>
+                            <h6> Price: ${price}</h6>
+                            <h6> Size: {size} SQFT</h6>
+                            <h6> Max Capactity: {capacity} {capacity > 1 ? `People` : `Person`}</h6>
+                            <h6> {pets? "Pets Are Allowed" : "No Pets Allowed"}</h6>
+                            <h6> {breakfast && "free breakfast included"}</h6>
+                        </article>
+                    </div>
+                </section>
+                <section className="room-extras">
+                    <h6> Extras </h6>
+                    <ul className="extras">
+                        {renderExtras}
+                    </ul>
+                </section>
+            </>
         )
     }
 }
