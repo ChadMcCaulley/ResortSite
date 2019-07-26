@@ -26,11 +26,11 @@ export default function RoomsFilter({rooms}) {
     let types = getUnique(rooms, "type");
     types = [
         "all", ...types
-    ]; // add the all value for showing all possible types
+    ]; // add the all values for showing all possible types
     const renderTypeOptions = types.map(type => {
         return <option value={type} key={shortid.generate()}>{type}</option>
     });
-    let renderGuestOptions = getUnique(rooms, "capacity").map(guest => {
+    let renderGuestOptions = getUnique(rooms, "capacity").sort().map(guest => {
         return <option value={guest} key={shortid.generate()}>
             {guest}
         </option>
