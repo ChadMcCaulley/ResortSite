@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import items from "./data";
+import Client from "./Contentful";
 
 const RoomContext = React.createContext();
 
@@ -19,19 +19,28 @@ class RoomProvider extends Component {
         breakfast: false,
         pets: false
     }
+    getData = async() => {
+        try {
+            let response = await Client.getEntries({content_type: "resortSiteTutorial", order: "fields.price"})
+            let rooms = this.formatData(response.items);
+            let featuredRooms = rooms.filter(room => room.featured);
+            let maxPrice = Math.max(...rooms.map(room => room.price));
+            let maxSize = Math.max(...rooms.map(room => room.size));
+            this.setState({
+                rooms,
+                featuredRooms,
+                sortedRooms: rooms,
+                loading: false,
+                price: maxPrice,
+                maxPrice: maxPrice,
+                maxSize: maxSize
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
     componentDidMount() {
-        let rooms = this.formatData(items);
-        let featuredRooms = rooms.filter(room => room.featured);
-        let maxPrice = Math.max(...rooms.map(room => room.price));
-        let maxSize = Math.max(...rooms.map(room => room.size));
-        this.setState({rooms, 
-            featuredRooms, 
-            sortedRooms: rooms, 
-            loading: false,
-            price: maxPrice,
-            maxPrice: maxPrice,
-            maxSize: maxSize
-        });
+        this.getData();
     }
     formatData(arr) {
         let tempItems = arr.map(item => {
@@ -44,7 +53,7 @@ class RoomProvider extends Component {
                 ...item.fields,
                 images: images,
                 id
-            }; // images is being overridden, could just write images
+            }; 
             return room;
         });
         return tempItems;
@@ -58,7 +67,9 @@ class RoomProvider extends Component {
     }
     handleChange = event => {
         const target = event.target;
-        const value = target.type === "checkbox" ? target.checked : target.value;
+        const value = target.type === "checkbox"
+            ? target.checked
+            : target.value;
         const name = event.target.name;
         //if(name === "minSize" && value < 0) return;
         this.setState({
@@ -66,27 +77,41 @@ class RoomProvider extends Component {
         }, this.filterRooms)
     }
     filterRooms = () => {
-        let{rooms, type, capacity, price, minSize, maxSize, breakfast, pets} = this.state;
+        let {
+            rooms,
+            type,
+            capacity,
+            price,
+            minSize,
+            maxSize,
+            breakfast,
+            pets
+        } = this.state;
         // all rooms
-        let sortedRooms = [...rooms]; 
+        let sortedRooms = [...rooms];
         // transform values
         capacity = parseInt(capacity);
         price = parseInt(price);
-        // filter rooms 
-        if(type !== "all")
+        // filter rooms
+        if (type !== "all") 
             sortedRooms = sortedRooms.filter(room => room.type === type);
         sortedRooms = sortedRooms.filter(room => room.capacity >= capacity);
         sortedRooms = sortedRooms.filter(room => room.price <= price);
         sortedRooms = sortedRooms.filter(room => room.size >= minSize && room.size <= maxSize);
-        if(breakfast)
+        if (breakfast) 
             sortedRooms = sortedRooms.filter(room => room.breakfast === breakfast);
-        if(pets)
+        if (pets) 
             sortedRooms = sortedRooms.filter(room => room.pets);
         this.setState({sortedRooms: sortedRooms});
     }
     render() {
         return (
-            <RoomContext.Provider value={{...this.state,getRoom: this.getRoom, handleChange: this.handleChange}}>
+            <RoomContext.Provider
+                value={{
+                ...this.state,
+                getRoom: this.getRoom,
+                handleChange: this.handleChange
+            }}>
                 {this.props.children}
             </RoomContext.Provider>
         )

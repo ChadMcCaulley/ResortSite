@@ -8,6 +8,7 @@ import Error from "./pages/Error";
 import Navbar from "./components/Navbar";
 
 import {Route, Switch} from "react-router-dom";
+require("dotenv").config();
 
 function App() {
     return (
